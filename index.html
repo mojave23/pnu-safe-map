@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PNU SAFE MAP</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+
+  <!-- Routing CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
+  />
+
+  <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="sidebar">
+
+        <h2>PNU SAFE MAP</h2>
+
+        <label>
+            <input type="checkbox" id="cctvCheck" checked>
+            CCTV
+        </label>
+
+        <br><br>
+
+        <label>
+            <input type="checkbox" id="lampCheck" checked>
+            가로등
+        </label>
+
+        <br><br>
+
+        <label>
+            <input type="checkbox" id="bellCheck" checked>
+            비상벨
+        </label>
+
+        <br><br>
+
+        <label>
+            <input type="checkbox" id="storeCheck" checked>
+            편의점(안전거점)
+        </label>
+
+        <br><br>
+
+        <button id="routeBtn">안전경로 찾기</button>
+
+    </div>
+
+    <div id="map"></div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
