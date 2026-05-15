@@ -1,219 +1,115 @@
-// 부산대학교 좌표
-const pnu = [35.2332,129.0821];
+let map;
 
-// 지도 생성
-const map = L.map('map').setView(pnu,16);
+const markers = {
+    cctv: [],
+    lamp: [],
+    bell: [],
+    store: []
+};
 
-// 지도 배경 (Google 지도 느낌)
+async function initMap(){
 
-L.tileLayer(
-'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-{
-    subdomains:'abcd',
-    maxZoom:20,
-    attribution:'&copy; OpenStreetMap & CARTO'
+    const pnu = { lat:35.2332, lng:129.0821 };
+
+    map = new google.maps.Map(document.getElementById("map"), {
+    center:pnu,
+    zoom:16
+    });
+
+    loadFacilities();
 }
-).addTo(map);
 
+function getIcon(type){
 
-// ===== 아이콘 =====
+    if(type==="cctv") return "📷";
+    if(type==="lamp") return "💡";
+    if(type==="bell") return "🚨";
+    if(type==="store") return "🏪";
 
-const cameraIcon = L.divIcon({
-    html:"📷",
-    className:"",
-    iconSize:[100,100]
-});
+    return "📍";
+}
 
-const lampIcon = L.divIcon({
-    html:"💡",
-    className:"",
-    iconSize:[100,100]
-});
+function makeMarkerContent(type){
 
-const bellIcon = L.divIcon({
-    html:"🚨",
-    className:"",
-    iconSize:[100,100]
-});
+    const div = document.createElement("div");
+    div.style.fontSize = "32px";
+    div.style.lineHeight = "1";
+    div.textContent = getIcon(type);
 
-const storeIcon = L.divIcon({
-    html:"🏪",
-    className:"",
-    iconSize:[100,100]
-});
+    return div;
+}
 
-// ===== 그룹 만들기 =====
+function loadFacilities(){
 
-const cctvLayer = L.layerGroup().addTo(map);
-const lampLayer = L.layerGroup().addTo(map);
-const bellLayer = L.layerGroup().addTo(map);
-const storeLayer = L.layerGroup().addTo(map);
+    fetch("data/facilities.csv")
+    .then(response=>response.text())
+    .then(csvData=>{
 
+        const result = Papa.parse(csvData,{
+            header:true,
+            skipEmptyLines:true
+        });
 
-// ===== CSV 자동 읽기 =====
+        result.data.forEach(item=>{
 
-fetch("data/facilities.csv")
-.then(response=>response.text())
-.then(csvData=>{
+            const lat = parseFloat(item.lat);
+            const lng = parseFloat(item.lng);
 
-    const result = Papa.parse(csvData,{
-        header:true
-    });
-
-    result.data.forEach(item=>{
-
-        let icon;
-        let layer;
-
-        if(item.type==="cctv"){
-            icon=cameraIcon;
-            layer=cctvLayer;
-        }
-
-        else if(item.type==="lamp"){
-            icon=lampIcon;
-            layer=lampLayer;
-        }
-
-        else if(item.type==="bell"){
-            icon=bellIcon;
-            layer=bellLayer;
-        }
-
-        else if(item.type==="store"){
-            icon=storeIcon;
-            layer=storeLayer;
-        }
-
-        else{
-            return;
-        }
-
-        L.marker(
-            [
-                parseFloat(item.lat),
-                parseFloat(item.lng)
-            ],
-            {
-                icon:icon
+            if(Number.isNaN(lat) || Number.isNaN(lng)){
+                return;
             }
-        )
-        .bindPopup(
-            `<b>${item.name}</b><br>${item.note}`
-        )
-        .addTo(layer);
+
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+                map:map,
+                position:{ lat:lat, lng:lng },
+                title:item.name,
+                content:makeMarkerContent(item.type)
+            });
+
+            const info = new google.maps.InfoWindow({
+                content:`<b>${item.name}</b><br>${item.note}`
+            });
+
+            marker.addListener("click",()=>{
+                info.open({
+                    map:map,
+                    anchor:marker
+                });
+            });
+
+            if(markers[item.type]){
+                markers[item.type].push(marker);
+            }
+
+        });
 
     });
+}
 
+function setMarkersVisible(type, visible){
+
+    markers[type].forEach(marker=>{
+        marker.map = visible ? map : null;
+    });
+
+}
+
+document.getElementById("cctvCheck").addEventListener("change",function(){
+    setMarkersVisible("cctv",this.checked);
 });
 
-
-// ===== 체크박스 기능 =====
-
-document
-.getElementById("cctvCheck")
-.addEventListener("change",function(){
-
-    if(this.checked){
-        map.addLayer(cctvLayer);
-    }
-    else{
-        map.removeLayer(cctvLayer);
-    }
-
+document.getElementById("lampCheck").addEventListener("change",function(){
+    setMarkersVisible("lamp",this.checked);
 });
 
-
-document
-.getElementById("lampCheck")
-.addEventListener("change",function(){
-
-    if(this.checked){
-        map.addLayer(lampLayer);
-    }
-    else{
-        map.removeLayer(lampLayer);
-    }
-
+document.getElementById("bellCheck").addEventListener("change",function(){
+    setMarkersVisible("bell",this.checked);
 });
 
-
-document
-.getElementById("bellCheck")
-.addEventListener("change",function(){
-
-    if(this.checked){
-        map.addLayer(bellLayer);
-    }
-    else{
-        map.removeLayer(bellLayer);
-    }
-
+document.getElementById("storeCheck").addEventListener("change",function(){
+    setMarkersVisible("store",this.checked);
 });
 
-
-document
-.getElementById("storeCheck")
-.addEventListener("change",function(){
-
-    if(this.checked){
-        map.addLayer(storeLayer);
-    }
-    else{
-        map.removeLayer(storeLayer);
-    }
-
-});
-
-
-// ===== 실제 도로 기반 안전 경로 =====
-
-let routeControl = null;
-
-document
-.getElementById("routeBtn")
-.addEventListener("click", function(){
-
-    // 이미 경로 있으면 제거
-    if(routeControl){
-        map.removeControl(routeControl);
-        routeControl = null;
-        return;
-    }
-
-    routeControl = L.Routing.control({
-
-        waypoints:[
-            L.latLng(35.2320,129.0810),
-            L.latLng(35.2350,129.0840)
-        ],
-
-        routeWhileDragging:false,
-
-        show:false,
-
-        lineOptions:{
-            styles:[
-                {
-                    color:"blue",
-                    weight:6
-                }
-            ]
-        }
-
-    }).addTo(map);
-
-});
-
-
-// ===== 모바일 메뉴 =====
-
-document
-.getElementById("menuBtn")
-.addEventListener("click", function(){
-
-    document
-    .querySelector(".sidebar")
-    .classList.toggle("open");
-
+document.getElementById("menuBtn").addEventListener("click",function(){
+    document.querySelector(".sidebar").classList.toggle("open");
 });
