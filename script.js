@@ -206,22 +206,14 @@ document
 });
 
 
-// ===== 좌표 확인 =====
+// ===== 모바일 메뉴 =====
 
-map.on("click", function(e){
+document
+.getElementById("menuBtn")
+.addEventListener("click", function(){
 
-    const lat=e.latlng.lat.toFixed(6);
-    const lng=e.latlng.lng.toFixed(6);
-
-    navigator.clipboard.writeText(
-        `${lat},${lng}`
-    );
-
-    alert(
-`복사 완료!
-
-위도: ${lat}
-경도: ${lng}`
-    );
+    document
+    .querySelector(".sidebar")
+    .classList.toggle("open");
 
 });
