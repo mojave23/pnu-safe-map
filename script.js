@@ -7,6 +7,8 @@ const markers = {
     store: []
 };
 
+let safePathLine;
+
 async function initMap(){
 
     const pnu = { lat:35.2332, lng:129.0821 };
@@ -17,6 +19,7 @@ async function initMap(){
     });
 
     loadFacilities();
+    drawSafePath();
 }
 
 function getIcon(type){
@@ -141,4 +144,53 @@ document.getElementById("storeCheck").addEventListener("change",function(){
 
 document.getElementById("menuBtn").addEventListener("click",function(){
     document.querySelector(".sidebar").classList.toggle("open");
+});
+
+
+function drawSafePath(){
+
+    const safePath = [
+        { lat:35.236657, lng:129.087114 },
+        { lat:35.238011, lng:129.087242 },
+        { lat:35.238059, lng:129.087816 }
+    ];
+
+    safePathLine = new google.maps.Polyline({
+        path:safePath,
+        geodesic:true,
+        strokeColor:"#00aa55",
+        strokeOpacity:1.0,
+        strokeWeight:6,
+        map:map
+    });
+
+    const safePathInfo = new google.maps.InfoWindow({
+    content:"<b>장전1동 여성안심귀갓길</b>"
+    });
+
+    safePathLine.addListener("click", function(event){
+
+        safePathInfo.setPosition(event.latLng);
+        safePathInfo.open(map);
+
+    });
+}
+
+
+document
+.getElementById("safePathCheck")
+.addEventListener("change", function(){
+
+    if(!safePathLine){
+        return;
+    }
+
+    if(this.checked){
+        safePathLine.setMap(map);
+    }
+
+    else{
+        safePathLine.setMap(null);
+    }
+
 });
