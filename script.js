@@ -59,11 +59,14 @@ function loadFacilities(){
                 return;
             }
 
-            const marker = new google.maps.marker.AdvancedMarkerElement({
-                map:map,
-                position:{ lat:lat, lng:lng },
-                title:item.name,
-                content:makeMarkerContent(item.type)
+            const marker = new google.maps.Marker({
+            position:{ lat:lat, lng:lng },
+            map:map,
+            title:item.name,
+            label:{
+                text:getIcon(item.type),
+                fontSize:"21px"
+                }
             });
 
             const info = new google.maps.InfoWindow({
@@ -71,10 +74,7 @@ function loadFacilities(){
             });
 
             marker.addListener("click",()=>{
-                info.open({
-                    map:map,
-                    anchor:marker
-                });
+                info.open(map, marker);
             });
 
             if(markers[item.type]){
@@ -89,7 +89,7 @@ function loadFacilities(){
 function setMarkersVisible(type, visible){
 
     markers[type].forEach(marker=>{
-        marker.map = visible ? map : null;
+        marker.setMap(visible ? map : null);
     });
 
 }
