@@ -60,17 +60,46 @@ function loadFacilities(){
             }
 
             const marker = new google.maps.Marker({
-            position:{ lat:lat, lng:lng },
-            map:map,
-            title:item.name,
-            label:{
-                text:getIcon(item.type),
-                fontSize:"21px"
+                position:{ lat:lat, lng:lng },
+                map:map,
+                title:item.name,
+                icon:{
+                    path:google.maps.SymbolPath.CIRCLE,
+                    scale:8,
+                    fillOpacity:0,
+                    strokeOpacity:0
+                },
+                label:{
+                    text:getIcon(item.type),
+                    fontSize:"22px"
                 }
             });
 
+            let popupContent = "";
+
+            if(item.type === "cctv"){
+                popupContent = `
+                    <b>${item.name}</b><br>
+                    위치: ${item.loca || "-"}
+                `;
+            }
+
+            else if(item.type === "store"){
+            popupContent = `
+                <b>${item.name}</b><br>
+                운영시간: ${item.oh || "-"}
+                `;
+            }
+
+            else{
+                popupContent = `
+                    <b>${item.name}</b><br>
+                    ${item.note || ""}
+                `;
+            }
+
             const info = new google.maps.InfoWindow({
-                content:`<b>${item.name}</b><br>${item.note}`
+                content: popupContent
             });
 
             marker.addListener("click",()=>{
