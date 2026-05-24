@@ -1,5 +1,8 @@
 let map;
 
+let directionsService;
+let directionsRenderer;
+
 const markers = {
     cctv: [],
     lamp: [],
@@ -14,9 +17,24 @@ async function initMap(){
     const pnu = { lat:35.2332, lng:129.0821 };
 
     map = new google.maps.Map(document.getElementById("map"), {
-    center:pnu,
-    zoom:16
+        center:pnu,
+        zoom:16
     });
+
+    // ===== 길찾기 서비스 =====
+
+    directionsService = new google.maps.DirectionsService();
+
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        map:map,
+        suppressMarkers:false,
+        polylineOptions:{
+            strokeColor:"#00aa55",
+            strokeWeight:7
+        }
+    });
+
+    // ===== 기존 기능 =====
 
     loadFacilities();
     drawSafePath();
@@ -194,3 +212,48 @@ document
     }
 
 });
+
+document
+.getElementById("routeBtn")
+.addEventListener("click", function(){
+
+    const start = document.getElementById("startInput").value;
+    const end = document.getElementById("endInput").value;
+
+    if(!start || !end){
+        alert("출발지와 도착지를 모두 입력해주세요.");
+        return;
+    }
+
+    findSafeRoute(start, end);
+
+});
+
+function findSafeRoute(start, end){
+
+    directionsService.route(
+        {
+            origin:start,
+            destination:end,
+            travelMode:google.maps.TravelMode.WALKING,
+            region:"KR",
+            provideRouteAlternatives:true
+        },
+        function(result, status){
+
+            if(status === "OK"){
+
+                directionsRenderer.setDirections(result);
+
+                alert("경로를 찾았습니다. 현재는 Google 보행 경로를 표시합니다.");
+            }
+
+            else{
+                alert("경로를 찾을 수 없습니다. 장소명을 더 구체적으로 입력해주세요.");
+                console.log(status);
+            }
+
+        }
+    );
+
+}
